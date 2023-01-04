@@ -1,12 +1,13 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import './App.css'
 
 function App() {
-  const [arrayList, setArrayList] = useState([[]]);
-  const [result, setResult] = useState('');
+  const [arrayList, setArrayList] = useState(['Apple Mango Banana']);
+  const [result, setResult] = useState([]);
+  const [template, setTemplate] = useState('{"fruitname" : "1"}');
 
   function addArray(){
-    setArrayList([...arrayList, []]);
+    setArrayList([...arrayList, '']);
   }
 
   function popArray(){
@@ -16,19 +17,36 @@ function App() {
   }
 
   function generateResult(){
-    setResult('Hello World');
+    let res = [];
+    let workArrayList = [];
+    for(let i = 0; i < arrayList.length; i++){
+      workArrayList[i] = arrayList[i].split(' ');
+    }
+
+    for(let i = 0; i < workArrayList[0].length; i++){
+      let row = template;
+      for(let j = 0; j < workArrayList.length; j++){
+        row = row.replace(String(j+1), workArrayList[j][i]);
+      }
+      res.push(row);
+    }
+    setResult(res);
+  }
+
+  function setTemplateValue(value){
+    setTemplate(value);
   }
 
   function setFieldValue(index, value){
     arrayList[index-1] = value;
     setArrayList([...arrayList])
-    console.log(arrayList[index-1]);
+    //console.log(arrayList[index-1]);
   }
 
   return (
     <div className="App">
       <ArrayBlock arrayList={arrayList} addArray={addArray} popArray={popArray} setFieldValue={setFieldValue}></ArrayBlock>
-      <TemplateField></TemplateField>
+      <TemplateField setTemplateValue={setTemplateValue}></TemplateField>
       <Result value={result}></Result>
       <GenerateResultButton generateResult={generateResult}></GenerateResultButton>
     </div>
@@ -42,7 +60,7 @@ function ArrayField(props) {
 
   return (
     <div className='ArrayField'>
-        <textarea onChange={handleChange}></textarea>
+        <textarea onChange={handleChange} defaultValue={props.index === 1 ? 'Apple Mango Banana' : ''}></textarea>
         <p>{props.index}</p>
     </div>
   )
@@ -60,10 +78,14 @@ function ArrayBlock(props){
   )
 }
 
-function TemplateField(){
+function TemplateField(props){
+  function handleChange(event){
+    props.setTemplateValue(event.target.value);
+  }
+
   return (
     <div className='TemplateField'>
-      <textarea></textarea>
+      <textarea onChange={handleChange} defaultValue={'{"fruitname" : "1"}'}></textarea>
     </div>
   )
 }
@@ -71,7 +93,9 @@ function TemplateField(){
 function Result(props){
   return (
     <div className='Result'>
-      <p>{props.value}</p>
+      {props.value.map((row, index) => {
+        return <p key={index}>{row}</p>;
+      })}
     </div>
   )
 }

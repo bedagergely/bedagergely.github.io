@@ -8,3 +8,15 @@
 .ArrayField *{
   display: inline-block;
 }
+
+textarea{
+  resize: none;
+  width: auto;
+  height: auto;
+}
+
+.result p {
+  margin: 0px;
+  padding: 0px;
+}
+
