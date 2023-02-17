@@ -1,23 +1,30 @@
 import './style.css'
-import typescriptLogo from './typescript.svg'
-import { setupCounter } from './counter'
 
-document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
-  <div>
-    <a href="https://vitejs.dev" target="_blank">
-      <img src="/vite.svg" class="logo" alt="Vite logo" />
-    </a>
-    <a href="https://www.typescriptlang.org/" target="_blank">
-      <img src="${typescriptLogo}" class="logo vanilla" alt="TypeScript logo" />
-    </a>
-    <h1>Vite + TypeScript</h1>
-    <div class="card">
-      <button id="counter" type="button"></button>
-    </div>
-    <p class="read-the-docs">
-      Click on the Vite and TypeScript logos to learn more
-    </p>
-  </div>
-`
+//init global variables
+const variableFieldContainer: Element = document.querySelector("#variableFieldContainer") as Element;
+const addFieldButton: HTMLButtonElement = document.querySelector("#addFieldButton") as HTMLButtonElement;
+const removeFieldButton: HTMLButtonElement = document.querySelector("#removeFieldButton") as HTMLButtonElement;
+var fieldCounter: number = 0;
 
-setupCounter(document.querySelector<HTMLButtonElement>('#counter')!)
+function main() {
+  addField();
+  addFieldButton.onclick = addField;
+  removeFieldButton.onclick = removeField;
+}
+
+function addField() {
+  let child = document.createElement('input');
+  child.setAttribute("id", fieldCounter.toString());
+  child.setAttribute("class", "field")
+  variableFieldContainer.appendChild(child);
+  fieldCounter++;
+}
+
+function removeField() {
+  if (fieldCounter > 1) {
+    variableFieldContainer.removeChild(variableFieldContainer.lastChild as Node);
+    fieldCounter--;
+  }
+}
+
+main();
