@@ -60,6 +60,9 @@ function generateResult() {
   let valueListCollection: string[][] = [];
   let minIteration: number = Infinity;
 
+  //clear previous result
+  resultContainer.innerHTML = '';
+
   //collect the values from the fields into lists
   for (let i = 0; i < fieldCounter; i++) {
     let f = getField(i);
