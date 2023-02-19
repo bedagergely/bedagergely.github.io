@@ -3,10 +3,11 @@ html, body {
     height: 100%;
     padding: 0;
     margin: 0;
+    background-color: #212121;
 }
 
 div {
-    border: 1px dashed purple;
+    /* border: 1px dashed purple; */
     min-height: 50px;
     max-width: fit-content;
     margin: auto;
@@ -17,7 +18,17 @@ input {
 }
 
 button {
-    margin: 5px;
+    font-family: monospace;
+    font-size: 1.5rem;
+    color: #FAFAFA;
+    text-transform: uppercase;
+    padding: 10px 20px;
+    border-radius: 10px;
+    border: 2px solid #FAFAFA;
+    background: #252525;
+    box-shadow: 3px 3px #fafafa;
+    cursor: pointer;
+    margin: 35px 0;
     min-width: 90px;
     min-height: 30px;
 }
@@ -28,7 +39,23 @@ button {
 
 .label {
     display: inline-block;
-    border: 1px solid black;
+    border: 1px solid #fafafa;
     margin: 5px;
     padding: 5px 10px;
+    color: #FAFAFA;
+    box-shadow: 3px 3px #fafafa;
+    position: relative;
+    top: -10px;
+}
+
+#main {
+    margin-top: 30px;
+}
+
+#variableFieldContainer {
+    color: black;
+}
+
+#resultContainer {
+    color: #FAFAFA;
 }
