@@ -99,7 +99,7 @@ function formatMuscleName(name: string): string {
 let muscleManager: MuscleModelManager;
 
 muscleManager = new MuscleModelManager({
-  modelUrl: 'https://github.com/bedagergely/bedagergely.github.io/releases/download/RELEASE/muscles.glb',
+  modelUrl: './models/muscles.glb',
   scene: scene,
   onLoaded: () => {
     // createUI();
