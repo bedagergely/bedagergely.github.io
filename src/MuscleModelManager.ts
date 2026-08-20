@@ -32,6 +32,8 @@ export class MuscleModelManager {
     color: 0x5a2d2d,
     roughness: 0.7,
     metalness: 0.1,
+    opacity: 0.4,
+    transparent: true,
   });
 
   readonly primaryMaterial: THREE.MeshStandardMaterial = new THREE.MeshStandardMaterial({

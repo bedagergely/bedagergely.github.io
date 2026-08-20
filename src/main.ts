@@ -132,10 +132,19 @@ window.addEventListener('pointerup', (event: MouseEvent) => {
     const intersectedMesh = muscleManager.getMuscleAtPointer(pointer, camera);
     if (intersectedMesh) {
       const baseName = muscleManager.selectMuscleByName(intersectedMesh.name);
-      muscleTitle.textContent = formatMuscleName(baseName);
+      muscleTitle.textContent = baseName;//formatMuscleName(baseName);
     }
   }
 });
+
+ window.addEventListener("keydown", (e: KeyboardEvent) => {
+      if (e.key === '1') {
+        const current = muscleTitle.textContent;
+        const next = current.replace(/\d+$/, (match) => String(Number(match) + 1));
+        muscleManager.selectMuscleByName(next);
+        muscleTitle.textContent = next
+      }
+  });
 
 // --- Exercise Selector UI ---
 // function createUI(): void {
