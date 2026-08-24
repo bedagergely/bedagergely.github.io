@@ -74,10 +74,9 @@ export class MuscleModelManager {
         root.traverse((child: THREE.Object3D) => {
           if ((child as THREE.Mesh).isMesh) {
             const mesh = child as THREE.Mesh;
-            const normalizedName = mesh.name.toLowerCase().trim();
 
-            this.muscleMeshes.set(normalizedName, mesh);
-            this.originalMaterials.set(normalizedName, mesh.material);
+            this.muscleMeshes.set(mesh.name, mesh);
+            this.originalMaterials.set(mesh.name, mesh.material);
 
             // 2. Cache the mesh reference here once
             this.cachedMeshes.push(mesh);
@@ -107,36 +106,18 @@ export class MuscleModelManager {
     });
   }
 
-  highlightExercise(exercise: ExerciseDefinition): void {
+  selectMuscleByName(name: string): string {
     this.resetHighlights();
-    this.applyTargetMaterial(exercise.primaryMuscles, this.primaryMaterial);
-    this.applyTargetMaterial(exercise.secondaryMuscles, this.secondaryMaterial);
-  }
-
-  getBaseMuscleName(rawName: string): string {
-    return rawName
-      .toLowerCase()
-      .trim()
-      .replace(/(_l|_r|\.l|\.r|_left|_right|-l|-r)$/i, '');
-  }
-
-  selectMuscleByName(rawName: string): string {
-    this.resetHighlights();
-    const baseName = this.getBaseMuscleName(rawName);
-    this.applyTargetMaterial([baseName], this.selectedMaterial);
-    return baseName;
+    this.applyTargetMaterial([name], this.selectedMaterial);
+    return name;
   }
 
   applyTargetMaterial(muscleIdentifiers: string[], material: THREE.Material): void {
     for (const id of muscleIdentifiers) {
-      const normalized = id.toLowerCase().trim();
 
       this.muscleMeshes.forEach((mesh, meshName) => {
         if (
-          meshName === normalized ||
-          meshName.startsWith(`${normalized}_`) ||
-          meshName.startsWith(`${normalized}.`) ||
-          meshName.startsWith(`${normalized}-`)
+          meshName === id
         ) {
           mesh.material = material;
         }

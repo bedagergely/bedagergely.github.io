@@ -1,34 +1,6 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import { MuscleModelManager, /*type ExerciseDefinition*/ } from './MuscleModelManager';
-
-// --- Sample Exercises Database ---
-// const exercises: ExerciseDefinition[] = [
-//   {
-//     id: 'bench_press',
-//     name: 'Barbell Bench Press',
-//     primaryMuscles: ['pectoralis_major'],
-//     secondaryMuscles: ['triceps_brachii', 'deltoid_anterior'],
-//   },
-//   {
-//     id: 'bicep_curl',
-//     name: 'Dumbbell Bicep Curl',
-//     primaryMuscles: ['biceps_brachii'],
-//     secondaryMuscles: ['brachialis', 'brachioradialis'],
-//   },
-//   {
-//     id: 'squat',
-//     name: 'Barbell Back Squat',
-//     primaryMuscles: ['quadriceps_femoris', 'gluteus_maximus'],
-//     secondaryMuscles: ['hamstrings', 'soleus', 'gastrocnemius'],
-//   },
-//   {
-//     id: 'pull_up',
-//     name: 'Pull-Up',
-//     primaryMuscles: ['latissimus_dorsi'],
-//     secondaryMuscles: ['biceps_brachii', 'trapezius', 'rhomboids'],
-//   },
-// ];
+import { MuscleModelManager } from './MuscleModelManager';
 
 // --- Scene Setup ---
 const scene = new THREE.Scene();
@@ -83,17 +55,56 @@ infoBox.style.minWidth = '220px';
 infoBox.style.zIndex = '100';
 infoBox.innerHTML = `
   <div style="font-size: 11px; text-transform: uppercase; color: #888; margin-bottom: 4px;">Selected Muscle</div>
-  <div id="muscle-title" style="font-size: 16px; font-weight: 600; color: #00d2ff;">Click any muscle</div>
+  
+  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px;">
+    <button id="prev-muscle" style="background: #333; color: white; border: none; padding: 4px 10px; cursor: pointer; border-radius: 4px;">&larr;</button>
+    <div id="muscle-title" style="font-size: 16px; font-weight: 600; color: #00d2ff; text-align: center; flex-grow: 1; padding: 0 10px;">Click any</div>
+    <button id="next-muscle" style="background: #333; color: white; border: none; padding: 4px 10px; cursor: pointer; border-radius: 4px;">&rarr;</button>
+  </div>
+  
+  <div style="border-top: 1px solid #333; padding-top: 10px;">
+    <div style="font-size: 11px; text-transform: uppercase; color: #888; margin-bottom: 4px;">Base Opacity</div>
+    <input type="range" id="opacity-slider" min="0" max="1" step="0.01" value="0.4" style="width: 100%; cursor: pointer;">
+  </div>
 `;
 document.body.appendChild(infoBox);
 
 const muscleTitle = document.getElementById('muscle-title')!;
+const prevButton = document.getElementById('prev-muscle')!;
+const nextButton = document.getElementById('next-muscle')!;
+const opacitySlider = document.getElementById('opacity-slider') as HTMLInputElement;
 
-function formatMuscleName(name: string): string {
-  return name
-    .replace(/[_.]/g, ' ')
-    .replace(/\b\w/g, (c) => c.toUpperCase());
+let currentMuscleIndex = -1;
+
+function stepMuscle(direction: number) {
+  // Ensure the model is loaded and we have meshes in the cache
+  if (!muscleManager || muscleManager.cachedMeshes.length === 0) return;
+
+  currentMuscleIndex += direction;
+
+  // Wrap around the array if we go out of bounds
+  if (currentMuscleIndex < 0) {
+    currentMuscleIndex = muscleManager.cachedMeshes.length - 1;
+  } else if (currentMuscleIndex >= muscleManager.cachedMeshes.length) {
+    currentMuscleIndex = 0;
+  }
+
+  // Get the mesh at the new index and update the UI
+  const targetMesh = muscleManager.cachedMeshes[currentMuscleIndex];
+  const baseName = muscleManager.selectMuscleByName(targetMesh.name);
+  muscleTitle.textContent = baseName;
 }
+
+prevButton.addEventListener('click', () => stepMuscle(-1));
+nextButton.addEventListener('click', () => stepMuscle(1));
+
+// Keep the previous opacity slider logic
+opacitySlider.addEventListener('input', (event) => {
+  const value = parseFloat((event.target as HTMLInputElement).value);
+  if (muscleManager && muscleManager.defaultMaterial) {
+    muscleManager.defaultMaterial.opacity = value;
+  }
+});
 
 // --- Muscle Manager Initialization ---
 let muscleManager: MuscleModelManager;
@@ -132,60 +143,13 @@ window.addEventListener('pointerup', (event: MouseEvent) => {
     const intersectedMesh = muscleManager.getMuscleAtPointer(pointer, camera);
     if (intersectedMesh) {
       const baseName = muscleManager.selectMuscleByName(intersectedMesh.name);
-      muscleTitle.textContent = baseName;//formatMuscleName(baseName);
+      muscleTitle.textContent = baseName;
+        
+      // Update the index so the next arrow click picks up from the selected muscle
+      currentMuscleIndex = muscleManager.cachedMeshes.findIndex(m => m === intersectedMesh);
     }
   }
 });
-
- window.addEventListener("keydown", (e: KeyboardEvent) => {
-      if (e.key === '1') {
-        const current = muscleTitle.textContent;
-        const next = current.replace(/\d+$/, (match) => String(Number(match) + 1));
-        muscleManager.selectMuscleByName(next);
-        muscleTitle.textContent = next
-      }
-  });
-
-// --- Exercise Selector UI ---
-// function createUI(): void {
-//   const select = document.createElement('select');
-//   select.style.position = 'fixed';
-//   select.style.top = '20px';
-//   select.style.left = '20px';
-//   select.style.padding = '8px 12px';
-//   select.style.fontSize = '14px';
-//   select.style.borderRadius = '6px';
-//   select.style.backgroundColor = '#1e1e24';
-//   select.style.color = '#fff';
-//   select.style.border = '1px solid #333';
-//   select.style.zIndex = '100';
-
-//   const defaultOption = document.createElement('option');
-//   defaultOption.value = '';
-//   defaultOption.textContent = '-- Select an Exercise Preset --';
-//   select.appendChild(defaultOption);
-
-//   exercises.forEach((exercise) => {
-//     const option = document.createElement('option');
-//     option.value = exercise.id;
-//     option.textContent = exercise.name;
-//     select.appendChild(option);
-//   });
-
-//   select.addEventListener('change', (e: Event) => {
-//     const target = e.target as HTMLSelectElement;
-//     const selectedExercise = exercises.find((ex) => ex.id === target.value);
-//     if (selectedExercise) {
-//       muscleManager.highlightExercise(selectedExercise);
-//       muscleTitle.textContent = selectedExercise.name;
-//     } else {
-//       muscleManager.resetHighlights();
-//       muscleTitle.textContent = 'Click any muscle';
-//     }
-//   });
-
-//   document.body.appendChild(select);
-// }
 
 // --- Window Resize Handling ---
 window.addEventListener('resize', () => {
