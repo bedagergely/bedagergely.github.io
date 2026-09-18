@@ -1,15 +1,9 @@
 import * as THREE from 'three';
 import { type GLTF, GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
+import { normalizeMuscleName } from './muscleGroups';
 
 export type MuscleTargetLevel = 'primary' | 'secondary' | 'selected' | 'inactive';
-
-export interface ExerciseDefinition {
-  id: string;
-  name: string;
-  primaryMuscles: string[];
-  secondaryMuscles: string[];
-}
 
 export interface MuscleManagerOptions {
   modelUrl: string;
@@ -22,6 +16,8 @@ export class MuscleModelManager {
   options: MuscleManagerOptions;
   muscleMeshes: Map<string, THREE.Mesh> = new Map();
   originalMaterials: Map<string, THREE.Material | THREE.Material[]> = new Map();
+  /** Normalized anatomical name (no side suffix) -> every mesh belonging to it. */
+  meshesByMuscle: Map<string, THREE.Mesh[]> = new Map();
 
   // 1. Pre-allocate Raycaster and Mesh Array to prevent GC memory thrashing
   raycaster: THREE.Raycaster = new THREE.Raycaster();
@@ -81,6 +77,11 @@ export class MuscleModelManager {
             // 2. Cache the mesh reference here once
             this.cachedMeshes.push(mesh);
 
+            const key = normalizeMuscleName(mesh.name);
+            const siblings = this.meshesByMuscle.get(key) ?? [];
+            siblings.push(mesh);
+            this.meshesByMuscle.set(key, siblings);
+
             mesh.material = this.defaultMaterial;
             mesh.castShadow = true;
             mesh.receiveShadow = true;
@@ -112,17 +113,28 @@ export class MuscleModelManager {
     return name;
   }
 
+  /**
+   * Identifiers may be exact mesh names or side-agnostic anatomical names
+   * ("Soleus muscle" highlights both sides).
+   */
   applyTargetMaterial(muscleIdentifiers: string[], material: THREE.Material): void {
     for (const id of muscleIdentifiers) {
+      const exact = this.muscleMeshes.get(id);
+      if (exact) {
+        exact.material = material;
+        continue;
+      }
 
-      this.muscleMeshes.forEach((mesh, meshName) => {
-        if (
-          meshName === id
-        ) {
-          mesh.material = material;
-        }
-      });
+      for (const mesh of this.meshesByMuscle.get(normalizeMuscleName(id)) ?? []) {
+        mesh.material = material;
+      }
     }
+  }
+
+  highlightExercise(primaryMuscles: string[], secondaryMuscles: string[]): void {
+    this.resetHighlights();
+    this.applyTargetMaterial(secondaryMuscles, this.secondaryMaterial);
+    this.applyTargetMaterial(primaryMuscles, this.primaryMaterial);
   }
 
   /**
