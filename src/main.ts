@@ -76,6 +76,11 @@ const opacitySlider = document.getElementById('opacity-slider') as HTMLInputElem
 
 let currentMuscleIndex = -1;
 
+// GLTFLoader replaces whitespace in object names with underscores.
+function formatMuscleName(name: string): string {
+  return name.replace(/_/g, ' ');
+}
+
 function stepMuscle(direction: number) {
   // Ensure the model is loaded and we have meshes in the cache
   if (!muscleManager || muscleManager.cachedMeshes.length === 0) return;
@@ -92,7 +97,7 @@ function stepMuscle(direction: number) {
   // Get the mesh at the new index and update the UI
   const targetMesh = muscleManager.cachedMeshes[currentMuscleIndex];
   const baseName = muscleManager.selectMuscleByName(targetMesh.name);
-  muscleTitle.textContent = baseName;
+  muscleTitle.textContent = formatMuscleName(baseName);
 }
 
 prevButton.addEventListener('click', () => stepMuscle(-1));
@@ -143,7 +148,7 @@ window.addEventListener('pointerup', (event: MouseEvent) => {
     const intersectedMesh = muscleManager.getMuscleAtPointer(pointer, camera);
     if (intersectedMesh) {
       const baseName = muscleManager.selectMuscleByName(intersectedMesh.name);
-      muscleTitle.textContent = baseName;
+      muscleTitle.textContent = formatMuscleName(baseName);
         
       // Update the index so the next arrow click picks up from the selected muscle
       currentMuscleIndex = muscleManager.cachedMeshes.findIndex(m => m === intersectedMesh);
